@@ -1,0 +1,87 @@
+@import "./shared.scss";
+
+#root {
+  // min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 200px;
+}
+
+.counterContainer > * {
+  min-width: 60px;
+  height: 58px;
+  @include font;
+  border: 1px solid $Primary;
+}
+
+.counterContainer {
+  input {
+    box-sizing: border-box;
+    padding: 5px 5px;
+    text: {
+      align: center;
+    }
+    background-color: #fbe8e8;
+    color: $Primary;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  .increment {
+    background: $Primary;
+    color: #fff;
+    border-radius: 0 8px 8px 0;
+    border-left: none;
+  }
+
+  .decrement {
+    background: #fff;
+    color: $Primary;
+    border-radius: 8px 0 0 8px;
+    border-right: none;
+  }
+}
+
+.counter-loader {
+  display: flex;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.counter-loader,
+.counter-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1f0c0c;
+  margin: 10px 0;
+  width: 172px;
+  text-align: left;
+}
+
+.loader {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border-top: 1px dotted black;
+  border-bottom: 1px solid black;
+  margin-right: 10px;
+  animation: spin 5s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
