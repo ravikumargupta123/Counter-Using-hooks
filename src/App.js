@@ -1,118 +1,99 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import fetch from "node-fetch";
+import CounterText from "./Components/CounterText";
+import CounterLoader from "./Components/CounterLoader";
 
-import LeftNav from "./LeftNav";
-import Search from "./Search";
-import Items from "./Items";
-import { Tasks, Status } from "./Data";
 import "./App.scss";
 
-const initialDnDState = {
-  draggedFrom: null,
-  draggedTo: null,
-  isDragging: false,
-  originalOrder: [],
-  updatedOrder: [],
-};
-
-function getDragAfterElement(container, y) {
-  const draggableElements = [
-    ...container.querySelectorAll(".draggable:not(.dragging)"),
-  ];
-
-  return draggableElements.reduce(
-    (closest, child) => {
-      const box = child.getBoundingClientRect();
-      const offset = y - box.top - box.height / 2;
-      if (offset < 0 && offset > closest.offset) {
-        return { offset: offset, element: child };
-      } else {
-        return closest;
-      }
-    },
-    { offset: Number.NEGATIVE_INFINITY },
-  ).element;
-}
+const initialCounter = 1;
+const maxCount = 1000;
+const minCount = 1;
 function App() {
-  const [dragAndDrop, setDragAndDrop] = React.useState(initialDnDState);
-  const [list] = React.useState(Tasks);
+  const [counter, setCounter] = useState(initialCounter);
+  const [loading, setLoading] = useState(true);
+  const isFirstRender = useRef(true);
 
-  const startDragging = (event) => {
-    const initialPosition = event.currentTarget.id;
-    setDragAndDrop({
-      ...dragAndDrop,
-      draggedFrom: initialPosition,
-      isDragging: true,
-      originalOrder: list, // store the current state of "list"
-    });
-    event.dataTransfer.setData("text", initialPosition);
+  console.log("APP", counter);
+
+  const updateCounter = async () => {
+    setLoading(true);
+    let response = await fetch(
+      "https://interview-8e4c5-default-rtdb.firebaseio.com/front-end/counter1.json",
+      {
+        method: "PUT",
+        body: JSON.stringify({ counter1: Number(counter) }),
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+    let json = await response.json();
+    setCounter(json.counter1);
+    setLoading(false);
   };
 
-  const updateDragAndDropState = (ev) => {
-    const afterElement = getDragAfterElement(ev.currentTarget, ev.clientY);
-    var data = ev.dataTransfer.getData("text");
-    if (afterElement == null) {
-      ev.currentTarget.append(document.getElementById(data));
-    } else {
-      afterElement.before(document.getElementById(data));
+  useEffect(() => {
+    async function fetchCount() {
+      let response = await fetch(
+        "https://interview-8e4c5-default-rtdb.firebaseio.com/front-end/counter1.json",
+      );
+      let json = await response.json();
+      if (json) {
+        setCounter(json.counter1);
+      }
+      setLoading(false);
+    }
+    fetchCount();
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false; // toggle flag after first render/mounting
+      return;
+    }
+    if (!loading) {
+      updateCounter();
+    }
+  }, [counter]);
+
+  const handleChange = (event) => {
+    if (!(event.target.value > maxCount)) {
+      setCounter(event.target.value);
     }
   };
 
-  const endDragging = () => {
-    setDragAndDrop({
-      ...dragAndDrop,
-      draggedFrom: "",
-      isDragging: false,
-    });
+  const increment = () => {
+    if (counter < maxCount && counter) {
+      setCounter(counter + 1);
+    }
   };
 
-  const receiveDraggedElements = (event) => {
-    event.preventDefault();
+  const decrement = () => {
+    if (minCount < counter && counter) {
+      setCounter(counter - 1);
+    }
   };
 
   return (
-    <div className="main-wrapper">
-      <LeftNav></LeftNav>
-
-      <div className="main-section">
-        <Search></Search>
-        <div className="grid-container">
-          {Status.map((ele, i) => (
-            <div key={i} className="grid-items">
-              {ele.name}
-            </div>
-          ))}
-
-          {Status.map((ele, i) => (
-            <div
-              key={i}
-              id={ele.name}
-              className="grid-items"
-              onDrop={updateDragAndDropState}
-              onDragOver={receiveDraggedElements}
-            >
-              {list[ele.id].map((el, i) => (
-                <div
-                  key={i}
-                  id={el.id}
-                  data-position={el.id}
-                  className={`draggable ${
-                    dragAndDrop.draggedFrom === el.id ? "dragging" : ""
-                  }`}
-                  draggable="true"
-                  onDragStart={startDragging}
-                  onDragEnd={endDragging}
-                >
-                  <Items el={el}></Items>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+    <>
+      <CounterLoader loading={loading}></CounterLoader>
+      <div className="counterContainer">
+        <button className="decrement" onClick={decrement}>
+          <span>-</span>
+        </button>
+        <input
+          type="text"
+          name="counter"
+          id="counter"
+          value={counter}
+          onChange={handleChange}
+          size="1"
+        />
+        <button className="increment" onClick={increment}>
+          <span>+</span>
+        </button>
       </div>
-    </div>
+      <CounterText counter={counter}></CounterText>
+    </>
   );
 }
 
-// App.propTypes = {};
-
-export default App;
+export default React.memo(App);
