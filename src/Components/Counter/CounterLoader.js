@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-export default function CounterLoader({ loading }) {
+function CounterLoader({ loading }) {
   return (
     <div className={`counter-loader ${!loading ? "hidden" : ""}`}>
       <span className="loader"></span>
@@ -13,3 +13,5 @@ export default function CounterLoader({ loading }) {
 CounterLoader.propTypes = {
   loading: PropTypes.bool,
 };
+
+export default React.memo(CounterLoader);
